@@ -18,6 +18,8 @@ import br.com.cwi.resetflix.exception.NotFoundException;
 import br.com.cwi.resetflix.mapper.AtorEntityMapper;
 import br.com.cwi.resetflix.mapper.AtoresResponseMapper;
 import br.com.cwi.resetflix.mapper.ConsultarDetalhesAtorResponseMapper;
+import br.com.cwi.resetflix.repository.AtoresRepository;
+import br.com.cwi.resetflix.repository.FilmeRepository;
 import br.com.cwi.resetflix.request.CriarAtorRequest;
 import br.com.cwi.resetflix.response.AtoresResponse;
 import br.com.cwi.resetflix.response.ConsultarDetalhesAtorResponse;
@@ -26,11 +28,11 @@ import br.com.cwi.resetflix.response.ConsultarDetalhesAtorResponse;
 public class AtoresService {
 
     //TODO Criar Repositories
-//    @Autowired
-//    private AtoresRepository atoresRepository;
-//
-//    @Autowired
-//    private FilmeRepository filmeRepository;
+    @Autowired
+    private AtoresRepository atoresRepository;
+
+    @Autowired
+    private FilmeRepository filmeRepository;
 
     @Autowired
     private AtoresResponseMapper atoresResponseMapper;
@@ -42,9 +44,8 @@ public class AtoresService {
     private ConsultarDetalhesAtorResponseMapper consultarDetalhesAtorResponseMapper;
 
     public List<AtoresResponse> getAtores() {
-//        final List<AtorEntity> atores = atoresRepository.metodoBuscar();
-//        return atoresResponseMapper.mapear(atores);
-        return emptyList();
+        final List<AtorEntity> atores = atoresRepository.findAll();
+        return atoresResponseMapper.mapear(atores);
     }
 
     @Transactional
@@ -54,22 +55,22 @@ public class AtoresService {
             throw new BadRequestException("Dados inválidos para cadastro de ator");
         }
 
-//        final List<FilmeEntity> filmes = filmeRepository.metodoBuscarPorId(request.getIdFilmes());
-        final List<FilmeEntity> filmes = new ArrayList<>();
+        final List<FilmeEntity> filmes = filmeRepository.findAllById(request.getIdFilmes());
 
         final AtorEntity atorSalvar = atorEntityMapper.mapear(request, filmes);
-//        atoresRepository.metodoSalvar(atorSalvar);
 
-        filmes.forEach(filme -> filme.getAtores().add(atorSalvar));
-//        filmeRepository.metodoSalvarTodos(filmes);
+        atoresRepository.save(atorSalvar);
+
+        for (FilmeEntity filme : filmes) {
+            filme.getAtores().add(atorSalvar);
+        }
 
         return atorSalvar.getId();
     }
 
     public ConsultarDetalhesAtorResponse consultarDetalhesAtor(final Long id) {
 
-        final AtorEntity atorSalvo = null;
-        // atorSalvo = atoresRepository.metodoBuscarPorId(id);
+        final AtorEntity atorSalvo = atoresRepository.findById(id).orElse(null);
 
         if (atorSalvo == null) {
             throw new NotFoundException("Ator não encontrado");

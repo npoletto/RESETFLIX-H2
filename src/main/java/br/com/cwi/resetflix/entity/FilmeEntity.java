@@ -2,19 +2,42 @@ package br.com.cwi.resetflix.entity;
 
 import java.util.List;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
 import br.com.cwi.resetflix.domain.Genero;
 
+@Entity
+@Table(name = "FILMES")
 public class FilmeEntity {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column
     private String nome;
 
+    @Column
+    @Enumerated(value = EnumType.STRING)
     private Genero genero;
 
+    @ManyToOne
     private DiretorEntity diretor;
 
+    @ManyToMany
     private List<AtorEntity> atores;
+
+    public FilmeEntity() {
+    }
 
     public FilmeEntity(final String nome, final Genero genero, final DiretorEntity diretores,
         final List<AtorEntity> atores) {
