@@ -74,13 +74,11 @@ public class FilmesService {
         List<AtorEntity> atores = atoresRepository.findAllById(request.getIdsAtores());
         for (AtorEntity ator : atores) {
             ator.getFilmes().add(filmeSalvar);
-           atoresRepository.save(ator);
         }
 
         DiretorEntity diretor = diretoresRepository.findById(request.getIdDiretor()).orElse(null);
         if(diretor!=null) {
             diretor.getFilmes().add(filmeSalvar);
-            diretoresRepository.save(diretor);
         }
         filmeRepository.save(filmeSalvar);
         return filmeSalvar.getId();

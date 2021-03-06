@@ -61,7 +61,6 @@ public class DiretoresService {
 
         for(FilmeEntity filme : filmes) {
             filme.setDiretor(diretorSalvar);
-            filmeRepository.save(filme);
         }
         diretorRepository.save(diretorSalvar);
         return diretorSalvar.getId();

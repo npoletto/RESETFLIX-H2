@@ -63,7 +63,6 @@ public class AtoresService {
 
         for (FilmeEntity filme : filmes) {
             filme.getAtores().add(atorSalvar);
-            filmeRepository.save(filme);
         }
         atoresRepository.save(atorSalvar);
         return atorSalvar.getId();
