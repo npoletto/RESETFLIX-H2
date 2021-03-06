@@ -59,12 +59,13 @@ public class AtoresService {
 
         final AtorEntity atorSalvar = atorEntityMapper.mapear(request, filmes);
 
-        atoresRepository.save(atorSalvar);
+
 
         for (FilmeEntity filme : filmes) {
             filme.getAtores().add(atorSalvar);
+            filmeRepository.save(filme);
         }
-
+        atoresRepository.save(atorSalvar);
         return atorSalvar.getId();
     }
 

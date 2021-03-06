@@ -6,6 +6,11 @@ import static org.apache.logging.log4j.util.Strings.isEmpty;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.cwi.resetflix.entity.AtorEntity;
+import br.com.cwi.resetflix.entity.DiretorEntity;
+import br.com.cwi.resetflix.repository.AtoresRepository;
+import br.com.cwi.resetflix.repository.DiretorRepository;
+import br.com.cwi.resetflix.repository.FilmeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,17 +25,19 @@ import br.com.cwi.resetflix.request.CriarFilmeRequest;
 import br.com.cwi.resetflix.response.ConsultarDetalhesFilmeResponse;
 import br.com.cwi.resetflix.response.FilmeResponse;
 
+import javax.transaction.Transactional;
+
 @Service
 public class FilmesService {
 
-//    @Autowired
-//    private FilmeRepository filmeRepository;
-//
-//    @Autowired
-//    private AtoresRepository atoresRepository;
-//
-//    @Autowired
-//    private DiretoresRepository diretoresRepository;
+     @Autowired
+     private FilmeRepository filmeRepository;
+
+    @Autowired
+    private AtoresRepository atoresRepository;
+
+    @Autowired
+    private DiretorRepository diretoresRepository;
 
     @Autowired
     private FilmeResponseMapper filmeResponseMapper;
@@ -43,17 +50,18 @@ public class FilmesService {
 
     public List<FilmeResponse> getFilmes(final Genero genero) {
 
-        final List<FilmeEntity> filmes = new ArrayList<>();
+        List<FilmeEntity> filmes = new ArrayList<>();
 
         if (nonNull(genero)) {
-//            filmes = filmeRepository.metodoBuscarTodosPorGenero(genero);
+            filmes = filmeRepository.findByGenero(genero);
         } else {
-//            filmes = filmeRepository.metodoBuscarTodos();
+             filmes = filmeRepository.findAll();
         }
 
         return filmeResponseMapper.mapear(filmes);
     }
 
+    @Transactional
     public Long criarFilme(final CriarFilmeRequest request) {
 
         if (request == null || isEmpty(request.getNome())) {
@@ -61,13 +69,26 @@ public class FilmesService {
         }
 
         final FilmeEntity filmeSalvar = filmeEntityMapper.mapear(request);
-//        return filmeRepository.metodoSalvar(filmeSalvar).getId();
-        return null;
+
+
+        List<AtorEntity> atores = atoresRepository.findAllById(request.getIdsAtores());
+        for (AtorEntity ator : atores) {
+            ator.getFilmes().add(filmeSalvar);
+           atoresRepository.save(ator);
+        }
+
+        DiretorEntity diretor = diretoresRepository.findById(request.getIdDiretor()).orElse(null);
+        if(diretor!=null) {
+            diretor.getFilmes().add(filmeSalvar);
+            diretoresRepository.save(diretor);
+        }
+        filmeRepository.save(filmeSalvar);
+        return filmeSalvar.getId();
     }
 
     public ConsultarDetalhesFilmeResponse consultarDetalhesFilme(final Long id) {
-//        final FilmeEntity filmeSalvo = filmeRepository.metodoBuscarPorId(id).orElse(null);
-        FilmeEntity filmeSalvo = null;
+       final FilmeEntity filmeSalvo = filmeRepository.findById(id).orElse(null);
+
         if (filmeSalvo == null) {
             throw new NotFoundException("Filme não encontrado");
         }

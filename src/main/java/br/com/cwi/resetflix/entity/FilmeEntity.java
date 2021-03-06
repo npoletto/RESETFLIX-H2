@@ -39,11 +39,11 @@ public class FilmeEntity {
     public FilmeEntity() {
     }
 
-    public FilmeEntity(final String nome, final Genero genero, final DiretorEntity diretores,
+    public FilmeEntity(final String nome, final Genero genero, final DiretorEntity diretor,
         final List<AtorEntity> atores) {
         this.nome = nome;
         this.genero = genero;
-        this.diretor = diretores;
+        this.diretor = diretor;
         this.atores = atores;
     }
 
