@@ -5,6 +5,9 @@ import static org.apache.logging.log4j.util.Strings.isEmpty;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.cwi.resetflix.entity.FilmeEntity;
+import br.com.cwi.resetflix.repository.DiretorRepository;
+import br.com.cwi.resetflix.repository.FilmeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,14 +21,10 @@ import br.com.cwi.resetflix.request.CriarDiretorRequest;
 import br.com.cwi.resetflix.response.ConsultarDetalhesDiretorResponse;
 import br.com.cwi.resetflix.response.DiretoresResponse;
 
+import javax.transaction.Transactional;
+
 @Service
 public class DiretoresService {
-
-//    @Autowired
-//    private DiretoresRepository diretoresRepository;
-//
-//    @Autowired
-//    private FilmeRepository filmeRepository;
 
     @Autowired
     private DiretoresResponseMapper diretoresResponseMapper;
@@ -34,30 +33,44 @@ public class DiretoresService {
     private DiretorEntityMapper diretorEntityMapper;
 
     @Autowired
+    private DiretorRepository diretorRepository;
+
+    @Autowired
+    private FilmeRepository filmeRepository;
+
+    @Autowired
     private ConsultarDetalhesDiretorResponseMapper consultarDetalhesDiretorResponseMapper;
 
     public List<DiretoresResponse> getDiretores() {
-//        final List<DiretorEntity> diretores = diretoresRepository.metodoBuscarTodos();
-        final List<DiretorEntity> diretores = new ArrayList<>();
+        final List<DiretorEntity> diretores = diretorRepository.findAll();
         return diretoresResponseMapper.mapear(diretores);
     }
 
-    public Long criarDiretor(final CriarDiretorRequest request) {
+    @Transactional
+    public synchronized Long criarDiretor(final CriarDiretorRequest request) {
 
         if (request == null || isEmpty(request.getNome())) {
             throw new BadRequestException("Dados inválidos para cadastro de diretor");
         }
 
+        final List<FilmeEntity> filmes = filmeRepository.findAllById(request.getIdFilmes());
+
         final DiretorEntity diretorSalvar = diretorEntityMapper.mapear(request);
 
-//        return diretoresRepository.metodoSalvar(diretorSalvar).getId();
-        return null;
+
+
+        for(FilmeEntity filme : filmes) {
+            filme.setDiretor(diretorSalvar);
+        }
+        diretorRepository.save(diretorSalvar);
+        return diretorSalvar.getId();
+
     }
 
     public ConsultarDetalhesDiretorResponse consultarDetalhesDiretor(final Long id) {
 
-        //final DiretorEntity diretorSalvo = diretoresRepository.metodoBuscarPorId(id);
-        final DiretorEntity diretorSalvo = null;
+        DiretorEntity diretorSalvo = diretorRepository.findById(id).orElse(null);
+
         if (diretorSalvo == null) {
             throw new NotFoundException("Diretor não encontrado");
         }
